@@ -83,11 +83,21 @@ describe('SincSportsService', () => {
         }).timeout(6000);
     });
 
-    describe('getScheduleForDivision', () => {
+    describe('getDivisionSchedule', () => {
         it('returns the expected schedule for the spring of 2018', (done) => {
-            SincSportsService.Create().getScheduleForDivision('spring', 2018, 'U13F02')
+            SincSportsService.Create().getDivisionSchedule('spring', 2018, 'U13F02')
                 .then((schedule) => {
                     expect(schedule.length).to.equal(36);
+                    done();
+                });
+        }).timeout(6000);
+    });
+
+    describe('getTeamSchedule', () => {
+        it('returns the expected schedule for a team', (done) => {
+            SincSportsService.Create().getTeamSchedule('spring', 2018, 'U13F02', 'NCF0591B')
+                .then((schedule) => {
+                    expect(schedule.length).to.equal(8);
                     done();
                 });
         }).timeout(6000);

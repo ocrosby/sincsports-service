@@ -110,10 +110,45 @@ module.exports = (() => {
         });
     };
 
-    SincSportsService.prototype.getScheduleHtml = function (season, year, division) {
+    SincSportsService.prototype.getTeamScheduleHtml = function (season, year, division, team) {
         return new Promise((resolve, reject) => {
             let tid;
             let sub;
+            let options;
+
+            if (!SincSportsService.IsValidSeason(season)) {
+                reject(new Error('Invalid season!'));
+            }
+
+            tid = SincSportsService.GetTid(season);
+
+            options = {
+                method: 'GET',
+                url: SincSportsService.BaseURL,
+                qs: {
+                    tid: tid,
+                    year: year.toString(),
+                    stid: tid,
+                    syear: year.toString(),
+                    div: division,
+                    team: team
+                },
+                headers: this.options.headers
+            };
+
+            request(options, function (error, response, responseHtml) {
+                if (error) {
+                    reject(error);
+                }
+
+                resolve(responseHtml);
+            });
+        });
+    };
+
+    SincSportsService.prototype.getDivisionScheduleHtml = function (season, year, division) {
+        return new Promise((resolve, reject) => {
+            let tid;
             let options;
 
             if (!SincSportsService.IsValidSeason(season)) {
@@ -149,7 +184,7 @@ module.exports = (() => {
         const me = this;
 
         return new Promise((resolve, reject) => {
-            me.getScheduleHtml(season, year, division)
+            me.getDivisionScheduleHtml(season, year, division)
                 .then((html) => {
                     let $;
                     let promises;
@@ -252,15 +287,59 @@ module.exports = (() => {
         });
     };
 
-    SincSportsService.prototype.getScheduleForTeam = function (season, year, team) {
-
-    };
-
-    SincSportsService.prototype.getScheduleForDivision = function (season, year, division) {
+    SincSportsService.prototype.getTeamSchedule = function (season, year, division, team) {
         const me = this;
 
         return new Promise((resolve, reject) => {
-            me.getScheduleHtml(season, year, division)
+            me.getTeamScheduleHtml(season, year, division, team)
+                .then((html) => {
+                    let $;
+                    let theGameList;
+                    let promises;
+
+                    try {
+                        $ = cheerio.load(html, CheerioOptions);
+                    } catch (error) {
+                        reject(error);
+                    }
+
+                    theGameList = $('#theGameList');
+                    promises = theGameList.children().map(function () {
+                        return MatchWrapper.Create($(this), console).getMatch();
+                    }).toArray();
+
+                    Promise.all(promises)
+                        .then(function (data) {
+                            let i;
+                            let matches = [];
+                            let currentMatch;
+
+                            for (i = 0 ; i < data.length ; i++) {
+                                currentMatch = data[i];
+
+                                if (currentMatch.awayTeam !== '' &&
+                                    currentMatch.homeTeam !== '') {
+                                    matches.push(currentMatch);
+                                }
+                            }
+
+                            resolve(matches);
+                        })
+                        .catch(function (error) {
+                            reject(error);
+                        });
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    };
+
+    SincSportsService.prototype.getDivisionSchedule = function (season, year, division) {
+        const me = this;
+
+        return new Promise((resolve, reject) => {
+            me.getDivisionScheduleHtml(season, year, division)
                 .then((html) => {
                     let $;
                     let theGameList;
