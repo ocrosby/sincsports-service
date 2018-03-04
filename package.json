@@ -1,0 +1,55 @@
+{
+  "name": "sincsports-service",
+  "version": "1.0.0",
+  "description": "A general purpose utility for extracting data from SincSports.",
+  "main": "src/index.js",
+  "scripts": {
+    "clean": "gulp clean",
+    "lint": "gulp lint",
+    "test": "nyc mocha ./test/**/*.spec.js --reporter mocha-multi-reporters --reporter-options configFile=mocha-config.json && nyc report --reporter=text-lcov | coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ocrosby/sincsports-service.git"
+  },
+  "keywords": [
+    "SincSports",
+    "Service"
+  ],
+  "author": "Omar Crosby",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ocrosby/sincsports-service/issues"
+  },
+  "homepage": "https://github.com/ocrosby/sincsports-service#readme",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "cheerio": "^1.0.0-rc.2",
+    "querystring": "^0.2.0",
+    "request": "^2.83.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-array": "0.0.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-http": "^3.0.0",
+    "chai-string": "^1.4.0",
+    "coveralls": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.4.0",
+    "gulp-jshint": "^2.1.0",
+    "gulp-jsonlint": "^1.2.1",
+    "gulp-mocha": "^5.0.0",
+    "jshint": "^2.9.5",
+    "jshint-checkstyle-file-reporter": "0.0.1",
+    "merge-stream": "^1.0.1",
+    "mocha": "^5.0.1",
+    "mocha-junit-reporter": "^1.17.0",
+    "mocha-lcov-reporter": "^1.3.0",
+    "mocha-multi-reporters": "^1.1.7",
+    "nyc": "^11.4.1",
+    "run-sequence": "^2.2.1",
+    "should": "^13.2.1",
+    "sinon": "^4.4.2"
+  }
+}
