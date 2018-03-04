@@ -83,9 +83,9 @@ describe('SincSportsService', () => {
         }).timeout(6000);
     });
 
-    describe('getSchedule', () => {
+    describe('getScheduleForDivision', () => {
         it('returns the expected schedule for the spring of 2018', (done) => {
-            SincSportsService.Create().getSchedule('spring', 2018, 'U13F02')
+            SincSportsService.Create().getScheduleForDivision('spring', 2018, 'U13F02')
                 .then((schedule) => {
                     expect(schedule.length).to.equal(36);
                     done();
@@ -98,6 +98,19 @@ describe('SincSportsService', () => {
             SincSportsService.Create().getTeams('spring', 2018, 'U13F02')
                 .then((teams) => {
                     expect(teams.length).to.equal(9);
+                    done();
+                });
+        }).timeout(6000);
+    });
+
+    describe('getTeamByName', () => {
+        it('returns specified team by name', (done) => {
+            let service = SincSportsService.Create();
+
+            service.getTeamByName('spring', 2018, 'U13F02', 'PGSA STARS GREEN G')
+                .then((team) => {
+                    expect(team.id).to.equal('NCF0591B');
+                    expect(team.name).to.equal('PGSA STARS GREEN G');
                     done();
                 });
         }).timeout(6000);

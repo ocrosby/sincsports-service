@@ -69,8 +69,6 @@ module.exports = (() => {
 
         return {
             name: text,
-            season: season,
-            year: year,
             id: id,
             gender: gender
         };
@@ -222,7 +220,43 @@ module.exports = (() => {
         });
     };
 
-    SincSportsService.prototype.getSchedule = function (season, year, division) {
+    SincSportsService.prototype.getTeamByName = function (season, year, division, teamName) {
+        const me = this;
+
+        return new Promise((resolve, reject) => {
+            me.getTeams(season, year, division)
+                .then((teams) => {
+                    let i;
+                    let length;
+                    let currentTeam;
+                    let selectedTeam;
+
+                    for (i = 0, length = teams.length ; i < length ; i++) {
+                        currentTeam = teams[i];
+
+                        if (currentTeam.name === teamName) {
+                            selectedTeam = currentTeam;
+                            break;
+                        }
+                    } // end for
+
+                    if (selectedTeam) {
+                        resolve(selectedTeam);
+                    } else {
+                        reject(new Error(`The specified team "${teamName}" was not found!`));
+                    }
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    };
+
+    SincSportsService.prototype.getScheduleForTeam = function (season, year, team) {
+
+    };
+
+    SincSportsService.prototype.getScheduleForDivision = function (season, year, division) {
         const me = this;
 
         return new Promise((resolve, reject) => {
