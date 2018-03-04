@@ -82,5 +82,15 @@ describe('SincSportsService', () => {
                 });
         }).timeout(6000);
     });
+
+    describe('getSchedule', () => {
+        it('returns the expected schedule for the spring of 2018', (done) => {
+            SincSportsService.Create().getSchedule('spring', 2018, 'U13F02')
+                .then((schedule) => {
+                    expect(schedule.length).to.equal(36);
+                    done();
+                });
+        }).timeout(6000);
+    });
 });
 

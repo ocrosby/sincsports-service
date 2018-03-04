@@ -3,6 +3,8 @@ const cheerio = require('cheerio');
 const request = require('request');
 const querystring = require('querystring');
 
+const MatchWrapper = require('./MatchWrapper.js');
+
 global.Promise = bluebird.Promise;
 
 const CheerioOptions = {
@@ -107,6 +109,89 @@ module.exports = (() => {
 
                 resolve(responseHtml);
             });
+        });
+    };
+
+    SincSportsService.prototype.getScheduleHtml = function (season, year, division) {
+        return new Promise((resolve, reject) => {
+            let tid;
+            let sub;
+            let options;
+
+            if (!SincSportsService.IsValidSeason(season)) {
+                reject(new Error('Invalid season!'));
+            }
+
+            tid = SincSportsService.GetTid(season);
+
+            options = {
+                method: 'GET',
+                url: SincSportsService.BaseURL,
+                qs: {
+                    tid: tid,
+                    year: year.toString(),
+                    stid: tid,
+                    syear: year.toString(),
+                    div: division
+                },
+                headers: this.options.headers
+            };
+
+            request(options, function (error, response, responseHtml) {
+                if (error) {
+                    reject(error);
+                }
+
+                resolve(responseHtml);
+            });
+        });
+    };
+
+    SincSportsService.prototype.getSchedule = function (season, year, division) {
+        const me = this;
+
+        return new Promise((resolve, reject) => {
+            me.getScheduleHtml(season, year, division)
+                .then((html) => {
+                    let $;
+                    let theGameList;
+                    let promises;
+
+                    try {
+                        $ = cheerio.load(html, CheerioOptions);
+                    } catch (error) {
+                        reject(error);
+                    }
+
+                    theGameList = $('#theGameList');
+                    promises = theGameList.children().map(function () {
+                        return MatchWrapper.Create($(this), console).getMatch();
+                    }).toArray();
+
+                    Promise.all(promises)
+                        .then(function (data) {
+                            let i;
+                            let matches = [];
+                            let currentMatch;
+
+                            for (i = 0 ; i < data.length ; i++) {
+                                currentMatch = data[i];
+
+                                if (currentMatch.awayTeam !== '' &&
+                                    currentMatch.homeTeam !== '') {
+                                    matches.push(currentMatch);
+                                }
+                            }
+
+                            resolve(matches);
+                        })
+                        .catch(function (error) {
+                            reject(error);
+                        });
+                })
+                .catch((err) => {
+                    reject(err);
+                });
         });
     };
 
