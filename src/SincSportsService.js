@@ -159,7 +159,7 @@ module.exports = (() => {
                     try {
                         $ = cheerio.load(html, CheerioOptions);
                     } catch (error) {
-                        deferred.reject(error);
+                        reject(error);
                     }
 
                     promises = $('.awayteam > a, .homelink > a').map(function () {
