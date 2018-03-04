@@ -147,6 +147,81 @@ module.exports = (() => {
         });
     };
 
+    SincSportsService.prototype.getTeams = function (season, year, division) {
+        const me = this;
+
+        return new Promise((resolve, reject) => {
+            me.getScheduleHtml(season, year, division)
+                .then((html) => {
+                    let $;
+                    let promises;
+
+                    try {
+                        $ = cheerio.load(html, CheerioOptions);
+                    } catch (error) {
+                        deferred.reject(error);
+                    }
+
+                    promises = $('.awayteam > a, .homelink > a').map(function () {
+                        let id;
+                        let teamName;
+                        let href;
+
+                        teamName = $(this).text().trim().toUpperCase();
+                        href = $(this).attr('href');
+                        id = querystring.parse(href).team;
+
+                        return { id: id, name: teamName };
+                    }).toArray();
+
+                    Promise.all(promises)
+                        .then(function (data) {
+                            let i;
+                            let j;
+                            let item;
+                            let teams;
+                            let found = false;
+
+                            teams = [];
+                            for (i = 0 ; i < data.length ; i++) {
+                                item = data[i];
+
+                                found = false;
+                                for (j = 0 ; j < teams.length ; j++) {
+                                    if (teams[j].name === item.name) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!found) {
+                                    teams.push(item);
+                                }
+                            }
+
+                            // Sorts the resulting team objects alphabetically by name.
+                            teams.sort(function (a, b) {
+                                if (a.name < b.name) {
+                                    return -1;
+                                } else if (a.name > b.name) {
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            });
+
+                            resolve(teams);
+                        })
+                        .fail(function (error) {
+                            reject(error);
+                        });
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    };
+
     SincSportsService.prototype.getSchedule = function (season, year, division) {
         const me = this;
 

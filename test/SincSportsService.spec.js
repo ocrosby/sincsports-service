@@ -92,5 +92,16 @@ describe('SincSportsService', () => {
                 });
         }).timeout(6000);
     });
+
+    describe('getTeams', () => {
+        it('returns the expected teams for the spring of 2018 U13F02', (done) => {
+            SincSportsService.Create().getTeams('spring', 2018, 'U13F02')
+                .then((teams) => {
+                    expect(teams.length).to.equal(9);
+                    done();
+                });
+        }).timeout(6000);
+    });
+
 });
 
