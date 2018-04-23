@@ -10,46 +10,12 @@ module.exports = (function () {
         return new MatchWrapper(element, logger);
     };
 
-    MatchWrapper.prototype.getClass = function () {
-        return this.element.attr('class');
-    };
-
-    MatchWrapper.prototype.isLineBreak = function () {
-        const value = this.getClass();
-
-        if (!value) {
-            return false;
-        }
-
-        return value.indexOf('breakLine') >= 0;
-    };
-
     MatchWrapper.prototype.getDate = function () {
-        let pos;
-        let value;
-
-        //this.logger.log('Retrieving a date...');
-
-        value = this.element.children('.date').text();
-
-        if (value === 'NotScheduled') {
-            value = 'Not Scheduled';
-        } else {
-            value = value.replace('day', 'day ');
-
-            pos = value.indexOf(' ');
-
-            value = value.substr(pos + 1);
-            value = value.trim();
-        }
-
-        return value;
+        return this.element('.col-xs-6:nth-child(1) > span:nth-child(2)').text();
     };
 
     MatchWrapper.prototype.getTime = function () {
-        //this.logger.log('Retrieving a time...');
-
-        return this.element.children('.time').text();
+        return this.element('.col-xs-6:nth-child(2) > span:nth-child(1)').text();
     };
 
     MatchWrapper.prototype.getDateTime = function () {
@@ -71,69 +37,42 @@ module.exports = (function () {
             return 0;
         }
 
-        datetime = date + ' ' + time;
-        datetime = Date.parse(datetime);
-
-        return datetime;
-    };
-
-    MatchWrapper.prototype.getScore = function (selector) {
-        let score;
-
-        //this.logger.log('Retrieving a score...');
-
-        score = this.element.children(selector).text();
-        score = score.trim();
-
-        if (score.length === 0) {
-            return 0;
-        }
-
-        return parseInt(score);
+        return Date.parse(`${date} ${time}`);
     };
 
     MatchWrapper.prototype.getLocation = function () {
-        return this.element.children('.field').text();
+        return this.element('div.col-md-4 > div.col-xs-11 > span > a').text();
     };
 
     MatchWrapper.prototype.getHomeTeamName = function () {
-        return this.element.children('.homelink').text();
+        return this.element('div.hometeam > a:nth-child(2)').text();
     };
 
     MatchWrapper.prototype.getHomeTeamScore = function () {
-        return this.getScore('.hscore');
+        return this.element('.col-xs-2 > div:nth-child(1)').text();
     };
 
     MatchWrapper.prototype.getAwayTeamName = function () {
-        return this.element.children('.awayteam').text();
+        return this.element('div.awayteam > a:nth-child(2)').text();
     };
 
     MatchWrapper.prototype.getAwayTeamScore = function () {
-        return this.getScore('.vscore');
+        return this.element('.col-xs-2 > div:nth-child(3)').text();
     };
 
     MatchWrapper.prototype.isVerified = function () {
-        let value = this.element.children('span.verified');
+        let text = this.element('.col-xs-6:nth-child(1) > span:nth-child(3)').text();
 
-        if (value.length) {
-            value = value.text();
-            value = value.trim();
-            value = value.toUpperCase();
-
-            if (value !== 'UNVERIFIED') {
-                return true;
-            }
+        text = text.trim();
+        if (text === 'UNVERIFIED') {
+            return false;
         }
 
-        return false;
+        return true;
     };
 
     MatchWrapper.prototype.getMatch = function () {
         let me = this;
-
-        if (me.isLineBreak()) {
-            return null;
-        }
 
         return {
             date: me.getDate(),

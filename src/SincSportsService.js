@@ -14,8 +14,8 @@ const CheerioOptions = {
     decodeEntities: true
 };
 
-const BoysSelector = 'tr:nth-child(19) a , #ctl00_ContentPlaceHolder1_MTable tr+ tr td';
-const GirlsSelector = '#ctl00_ContentPlaceHolder1_FTable tr+ tr td';
+const BoysSelector = '.col-md-6:nth-child(1) a';
+const GirlsSelector = '.col-md-6+ .col-md-6 a';
 
 module.exports = (() => {
     'use strict';
@@ -59,12 +59,9 @@ module.exports = (() => {
         anchor = item.children('a');
 
         id = null;
-        if (anchor) {
-            url = anchor.attr('href');
-
-            if (url) {
-                id = querystring.parse(url).div;
-            }
+        url = item.attr('href');
+        if (url) {
+            id = querystring.parse(url).div;
         }
 
         return {
@@ -351,8 +348,8 @@ module.exports = (() => {
                         reject(error);
                     }
 
-                    theGameList = $('#theGameList');
-                    promises = theGameList.children().map(function () {
+                    theGameList = $('div.game-row');
+                    promises = theGameList.map(function () {
                         return MatchWrapper.Create($(this), console).getMatch();
                     }).toArray();
 
