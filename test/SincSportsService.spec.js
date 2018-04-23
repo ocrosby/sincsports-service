@@ -74,11 +74,10 @@ describe('SincSportsService', () => {
     });
 
     describe('getDivisions', () => {
-        it('returns the expected number of divisions for the fall of 2017', (done) => {
-            SincSportsService.Create().getDivisions('fall', 2017)
+        it('returns the expected number of divisions for the fall of 2017', () => {
+            return SincSportsService.Create().getDivisions('fall', 2017)
                 .then((divisions) => {
                     expect(divisions.length).to.equal(105);
-                    done();
                 });
         }).timeout(6000);
     });

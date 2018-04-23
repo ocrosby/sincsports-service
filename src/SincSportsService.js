@@ -92,8 +92,7 @@ module.exports = (() => {
                     tab: '3',
                     sub: sub,
                     sTid: tid,
-                    sYear: year.toString(),
-                    old: 'Y'
+                    sYear: year.toString()
                 },
                 headers: this.options.headers
             };
@@ -129,8 +128,7 @@ module.exports = (() => {
                     stid: tid,
                     syear: year.toString(),
                     div: division,
-                    team: team,
-                    old: 'Y'
+                    team: team
                 },
                 headers: this.options.headers
             };
@@ -164,8 +162,7 @@ module.exports = (() => {
                     year: year.toString(),
                     stid: tid,
                     syear: year.toString(),
-                    div: division,
-                    old: 'Y'
+                    div: division
                 },
                 headers: this.options.headers
             };
