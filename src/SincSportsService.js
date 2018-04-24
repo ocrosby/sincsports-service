@@ -380,17 +380,29 @@ module.exports = (() => {
         });
     };
 
-    SincSportsService.prototype.getDivisions = function (season, year) {
+    SincSportsService.prototype.collectDivisions = function ($, selector, gender, season, year, promises) {
+        let i;
+        let currentPromise;
+        let genderSpecificPromises;
+
+        genderSpecificPromises = $(selector).map(() => {
+            return this.createDivision($(this), gender, season, year);
+        }).toArray();
+
+        for (i = 0 ; i < genderSpecificPromises.length ; i++) {
+            currentPromise = genderSpecificPromises[i];
+            promises.push(currentPromise);
+        }
+    };
+
+    SincSportsService.prototype.getDivisions = function (season, year, gender) {
         const me = this;
 
         return new Promise((resolve, reject) => {
             me.getDivisionsHtml(season, year)
                 .then((html) => {
-                    let i;
                     let $;
-                    let promises;
-                    let boysPromises;
-                    let girlsPromises;
+                    let promises = [];
 
                     console.log('Retrieved the html.');
 
@@ -400,23 +412,20 @@ module.exports = (() => {
                         reject(error);
                     }
 
-                    promises = [];
+                    if (gender) {
+                        gender = gender.trim().toLowerCase();
 
-                    // Add the Boys Divisions
-                    boysPromises = $(BoysSelector).map(function () {
-                        return me.createDivision($(this), 'male', season, year);
-                    }).toArray();
-
-                    girlsPromises = $(GirlsSelector).map(function () {
-                        return me.createDivision($(this), 'female', season, year);
-                    }).toArray();
-
-                    for (i = 0; i < boysPromises.length; i++) {
-                        promises.push(boysPromises[i]);
-                    }
-
-                    for (i = 0; i < girlsPromises.length; i++) {
-                        promises.push(girlsPromises[i]);
+                        if (gender === 'male') {
+                            this.collectDivisions($, BoysSelector, 'male', season, year, promises);
+                        } else if (gender === 'female') {
+                            this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
+                        } else {
+                            this.collectDivisions($, BoysSelector, 'male', season, year, promises);
+                            this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
+                        }
+                    } else {
+                        this.collectDivisions($, BoysSelector, 'male', season, year, promises);
+                        this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
                     }
 
                     Promise.all(promises)

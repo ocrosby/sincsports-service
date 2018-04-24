@@ -80,6 +80,21 @@ describe('SincSportsService', () => {
                     expect(divisions.length).to.equal(105);
                 });
         }).timeout(6000);
+
+        it('returns the expected number of male divisions for the fall of 2017', () => {
+            return SincSportsService.Create().getDivisions('fall', 2017, 'male')
+                .then((divisions) => {
+                    expect(divisions.length).to.equal(44);
+                });
+        }).timeout(6000);
+
+        it('returns the expected number of female divisions for the fall of 2017', () => {
+            return SincSportsService.Create().getDivisions('fall', 2017, 'female')
+                .then((divisions) => {
+                    expect(divisions.length).to.equal(61);
+                });
+        }).timeout(6000);
+
     });
 
     xdescribe('getDivisionSchedule', () => {
