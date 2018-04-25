@@ -2,7 +2,7 @@ const bluebird = require('bluebird');
 const cheerio = require('cheerio');
 const request = require('request');
 const querystring = require('querystring');
-const sincsports = require('./SincSports');
+const htmlRetriever = require('./HtmlRetriever');
 const MatchWrapper = require('./MatchWrapper.js');
 
 global.Promise = bluebird.Promise;
@@ -22,16 +22,7 @@ module.exports = (() => {
 
     function SincSportsService(options) {
         this.options = options || {};
-
-        if (!this.options.headers) {
-            this.options.headers = {
-                'cache-control': 'no-cache',
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X)'
-            };
-        }
     }
-
-    SincSportsService.BaseURL = 'http://soccer.sincsports.com/TTSchedules.aspx';
 
     SincSportsService.Create = function (options) {
         return new SincSportsService(options);
@@ -45,13 +36,12 @@ module.exports = (() => {
         let id;
         let url;
         let text;
-        let anchor;
 
-        text = item.text().trim();
-        anchor = item.children('a');
+        text = item.children[0].data;
+        text = text.trim();
 
         id = null;
-        url = item.attr('href');
+        url = item.attribs.href;
         if (url) {
             id = querystring.parse(url).div;
         }
@@ -63,101 +53,11 @@ module.exports = (() => {
         };
     };
 
-    SincSportsService.prototype.getDivisionsHtml = function (season, year) {
-        return new Promise((resolve, reject) => {
-            let options;
-
-            if (!SincSportsService.IsValidSeason(season)) {
-                reject(new Error('Invalid season!'));
-            }
-
-            options = sincsports.createOptions(season, year);
-
-            request(options, function (error, response, responseHtml) {
-                if (error) {
-                    reject(error);
-                }
-
-                resolve(responseHtml);
-            });
-        });
-    };
-
-    SincSportsService.prototype.getTeamScheduleHtml = function (season, year, division, team) {
-        return new Promise((resolve, reject) => {
-            let tid;
-            let sub;
-            let options;
-
-            if (!SincSportsService.IsValidSeason(season)) {
-                reject(new Error('Invalid season!'));
-            }
-
-            tid = SincSportsService.GetTid(season);
-
-            options = {
-                method: 'GET',
-                url: SincSportsService.BaseURL,
-                qs: {
-                    tid: tid,
-                    year: year.toString(),
-                    stid: tid,
-                    syear: year.toString(),
-                    div: division,
-                    team: team
-                },
-                headers: this.options.headers
-            };
-
-            request(options, function (error, response, responseHtml) {
-                if (error) {
-                    reject(error);
-                }
-
-                resolve(responseHtml);
-            });
-        });
-    };
-
-    SincSportsService.prototype.getDivisionScheduleHtml = function (season, year, division) {
-        return new Promise((resolve, reject) => {
-            let tid;
-            let options;
-
-            if (!SincSportsService.IsValidSeason(season)) {
-                reject(new Error('Invalid season!'));
-            }
-
-            tid = SincSportsService.GetTid(season);
-
-            options = {
-                method: 'GET',
-                url: SincSportsService.BaseURL,
-                qs: {
-                    tid: tid,
-                    year: year.toString(),
-                    stid: tid,
-                    syear: year.toString(),
-                    div: division
-                },
-                headers: this.options.headers
-            };
-
-            request(options, function (error, response, responseHtml) {
-                if (error) {
-                    reject(error);
-                }
-
-                resolve(responseHtml);
-            });
-        });
-    };
-
     SincSportsService.prototype.getTeams = function (season, year, division) {
         const me = this;
 
         return new Promise((resolve, reject) => {
-            me.getDivisionScheduleHtml(season, year, division)
+            htmlRetriever.getDivisionSchedule(season, year, division)
                 .then((html) => {
                     let $;
                     let promises;
@@ -264,7 +164,7 @@ module.exports = (() => {
         const me = this;
 
         return new Promise((resolve, reject) => {
-            me.getTeamScheduleHtml(season, year, division, team)
+            htmlRetriever.getTeamSchedule(season, year, division, team)
                 .then((html) => {
                     let $;
                     let theGameList;
@@ -312,7 +212,7 @@ module.exports = (() => {
         const me = this;
 
         return new Promise((resolve, reject) => {
-            me.getDivisionScheduleHtml(season, year, division)
+            htmlRetriever.getDivisionSchedule(season, year, division)
                 .then((html) => {
                     let $;
                     let theGameList;
@@ -357,12 +257,14 @@ module.exports = (() => {
     };
 
     SincSportsService.prototype.collectDivisions = function ($, selector, gender, season, year, promises) {
+        const me = this;
+
         let i;
         let currentPromise;
         let genderSpecificPromises;
 
-        genderSpecificPromises = $(selector).map(() => {
-            return this.createDivision($(this), gender, season, year);
+        genderSpecificPromises = $(selector).map(function (i, el) {
+            return me.createDivision(el, gender, season, year);
         }).toArray();
 
         for (i = 0 ; i < genderSpecificPromises.length ; i++) {
@@ -375,7 +277,7 @@ module.exports = (() => {
         const me = this;
 
         return new Promise((resolve, reject) => {
-            me.getDivisionsHtml(season, year)
+            htmlRetriever.getDivisions(season, year)
                 .then((html) => {
                     let $;
                     let promises = [];
@@ -384,33 +286,33 @@ module.exports = (() => {
 
                     try {
                         $ = cheerio.load(html, CheerioOptions);
-                    } catch (error) {
-                        reject(error);
-                    }
 
-                    if (gender) {
-                        gender = gender.trim().toLowerCase();
+                        if (gender) {
+                            gender = gender.trim().toLowerCase();
 
-                        if (gender === 'male') {
-                            this.collectDivisions($, BoysSelector, 'male', season, year, promises);
-                        } else if (gender === 'female') {
-                            this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
+                            if (gender === 'male') {
+                                this.collectDivisions($, BoysSelector, 'male', season, year, promises);
+                            } else if (gender === 'female') {
+                                this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
+                            } else {
+                                this.collectDivisions($, BoysSelector, 'male', season, year, promises);
+                                this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
+                            }
                         } else {
                             this.collectDivisions($, BoysSelector, 'male', season, year, promises);
                             this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
                         }
-                    } else {
-                        this.collectDivisions($, BoysSelector, 'male', season, year, promises);
-                        this.collectDivisions($, GirlsSelector, 'female', season, year, promises);
-                    }
 
-                    Promise.all(promises)
-                        .then(function (data) {
-                            resolve(data);
-                        })
-                        .catch(function (error) {
-                            reject(error);
-                        });
+                        Promise.all(promises)
+                            .then(function (data) {
+                                resolve(data);
+                            })
+                            .catch(function (error) {
+                                reject(error);
+                            });
+                    } catch (error) {
+                        reject(error);
+                    }
                 })
                 .catch((err) => {
                     reject(err);

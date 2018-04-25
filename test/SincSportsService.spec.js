@@ -37,42 +37,6 @@ describe('SincSportsService', () => {
         });
     });
 
-    describe('GetTid', () => {
-        it('returns "NCFL" when given "fall"', () => {
-            expect(SincSportsService.GetTid('fall')).to.equal('NCFL');
-        });
-
-        it('returns "NCCSL" when given "spring"', () => {
-            expect(SincSportsService.GetTid('spring')).to.equal('NCCSL');
-        });
-
-        it('returns "NCFL" when given nothing', () => {
-            expect(SincSportsService.GetTid()).to.equal('NCFL');
-        });
-
-        it('returns "NCFL" when given null', () => {
-            expect(SincSportsService.GetTid(null)).to.equal('NCFL');
-        });
-
-        it('returns "NCFL" when given undefined', () => {
-            expect(SincSportsService.GetTid(undefined)).to.equal('NCFL');
-        });
-    });
-
-    describe('GetSub', () => {
-        it('returns "3" when given "fall"', () => {
-            expect(SincSportsService.GetSub('fall')).to.equal('3');
-        });
-
-        it('returns "3" when given nothing', () => {
-            expect(SincSportsService.GetSub()).to.equal('3');
-        });
-
-        it('returns "2" when given "spring"', () => {
-            expect(SincSportsService.GetSub('spring')).to.equal('2');
-        });
-    });
-
     describe('getDivisions', () => {
         it('returns the expected number of divisions for the fall of 2017', () => {
             return SincSportsService.Create().getDivisions('fall', 2017)
