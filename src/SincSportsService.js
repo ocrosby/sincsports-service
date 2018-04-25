@@ -2,7 +2,7 @@ const bluebird = require('bluebird');
 const cheerio = require('cheerio');
 const request = require('request');
 const querystring = require('querystring');
-
+const sincsports = require('./SincSports');
 const MatchWrapper = require('./MatchWrapper.js');
 
 global.Promise = bluebird.Promise;
@@ -41,14 +41,6 @@ module.exports = (() => {
         return season === 'spring' || season === 'fall';
     };
 
-    SincSportsService.GetTid = function (season) {
-        return season === 'spring' ? 'NCCSL' : 'NCFL';
-    };
-
-    SincSportsService.GetSub = function (season) {
-        return season === 'spring' ? '2' : '3';
-    };
-
     SincSportsService.prototype.createDivision = function (item, gender, season, year) {
         let id;
         let url;
@@ -73,29 +65,13 @@ module.exports = (() => {
 
     SincSportsService.prototype.getDivisionsHtml = function (season, year) {
         return new Promise((resolve, reject) => {
-            let tid;
-            let sub;
             let options;
 
             if (!SincSportsService.IsValidSeason(season)) {
                 reject(new Error('Invalid season!'));
             }
 
-            tid = SincSportsService.GetTid(season);
-            sub = SincSportsService.GetSub(season);
-
-            options = {
-                method: 'GET',
-                url: SincSportsService.BaseURL,
-                qs: {
-                    tid: tid,
-                    tab: '3',
-                    sub: sub,
-                    sTid: tid,
-                    sYear: year.toString()
-                },
-                headers: this.options.headers
-            };
+            options = sincsports.createOptions(season, year);
 
             request(options, function (error, response, responseHtml) {
                 if (error) {
